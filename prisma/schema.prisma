@@ -1,0 +1,83 @@
+// Prisma Schema for CG Fun Coach
+// Database: PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Mission {
+  id               Int                 @id @default(autoincrement())
+  missionNumber    Int                 @unique @map("mission_number")
+  title            String              @db.VarChar(150)
+  targetItem       String              @map("target_item") @db.VarChar(255)
+  challenge        String              @db.Text
+  spiritualMeaning String              @map("spiritual_meaning") @db.Text
+  bibleVerse       String              @map("bible_verse") @db.VarChar(100)
+  createdAt        DateTime            @default(now()) @map("created_at")
+
+  currentTeams     Team[]              @relation("CurrentMission")
+  submissions      MissionSubmission[]
+
+  @@map("missions")
+}
+
+model Team {
+  id                 String              @id @default(uuid()) @db.Uuid
+  name               String              @unique @db.VarChar(150)
+  members            Json                @default("[]") // Array of string: ["Name 1", "Name 2"]
+  teamPhotoUrl       String              @map("team_photo_url") @db.Text
+  
+  status             TeamStatus          @default(NOT_STARTED)
+  startedAt          DateTime?           @map("started_at")
+  expiresAt          DateTime?           @map("expires_at")
+  completedAt        DateTime?           @map("completed_at")
+  durationSeconds    Int?                @map("duration_seconds")
+  
+  currentMissionId   Int                 @default(1) @map("current_mission_id")
+  currentMission     Mission             @relation("CurrentMission", fields: [currentMissionId], references: [id])
+  
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+
+  submissions        MissionSubmission[]
+
+  @@index([status])
+  @@index([startedAt])
+  @@map("teams")
+}
+
+model MissionSubmission {
+  id                 String              @id @default(uuid()) @db.Uuid
+  teamId             String              @map("team_id") @db.Uuid
+  missionId          Int                 @map("mission_id")
+  photoUrl           String              @map("photo_url") @db.Text
+  submittedAt        DateTime            @default(now()) @map("submitted_at")
+  verificationStatus VerificationStatus  @default(APPROVED) @map("verification_status")
+  notes              String?             @db.Text
+
+  team               Team                @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  mission            Mission             @relation(fields: [missionId], references: [id], onDelete: Restrict)
+
+  @@unique([teamId, missionId], name: "uq_team_mission")
+  @@index([teamId])
+  @@index([missionId])
+  @@map("mission_submissions")
+}
+
+enum TeamStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  TIMEOUT
+}
+
+enum VerificationStatus {
+  APPROVED
+  PENDING
+  REJECTED
+}
