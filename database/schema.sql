@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS teams (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(150) NOT NULL UNIQUE,             -- Nama Kelompok
     members JSONB NOT NULL DEFAULT '[]'::jsonb,    -- Array nama anggota: ["Budi", "Siti", "Andi"]
-    team_photo_url TEXT NOT NULL,                  -- URL bukti foto tim di MinIO
+    team_photo_url TEXT NOT NULL,                  -- URL bukti foto tim di Supabase Storage
     
     -- Status & Timer Game (Countdown 60 menit)
     status VARCHAR(30) NOT NULL DEFAULT 'NOT_STARTED', 
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS mission_submissions (
     team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
     mission_id INT NOT NULL REFERENCES missions(id) ON DELETE RESTRICT,
     
-    photo_url TEXT NOT NULL,                       -- URL foto bukti di MinIO
+    photo_url TEXT NOT NULL,                       -- URL foto bukti di Supabase Storage
     submitted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     
     -- Status verifikasi jika panitia/coach ingin validasi (opsional)

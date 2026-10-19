@@ -4,8 +4,8 @@ Aplikasi web interaktif untuk acara *Cell Group* / Persekutuan Doa bertema "A Pl
 
 ## 🛠️ Tech Stack
 - **Frontend & Backend:** Next.js (App Router)
-- **Database:** PostgreSQL
-- **Storage:** MinIO (S3-compatible object storage)
+- **Database:** Supabase (PostgreSQL)
+- **Storage:** Supabase Storage (dengan optimasi *Client-Side Image Compression* otomatis sebelum upload untuk efisiensi kuota storage)
 
 ---
 
@@ -13,15 +13,16 @@ Aplikasi web interaktif untuk acara *Cell Group* / Persekutuan Doa bertema "A Pl
 
 1. **Pendaftaran Tim (`/`)**
    - Peserta memasukkan **Nama Kelompok** dan **Daftar Nama Anggota**.
-   - Peserta mengambil atau meng-upload **Foto Tim** saat pendaftaran.
-   - Tombol "Mulai Game" ditekan, mencatat `started_at` di database dan mengaktifkan **Countdown Timer 60 menit**.
+   - Peserta mengambil atau meng-upload **Foto Tim** saat pendaftaran (dikompresi otomatis di sisi browser).
+   - Tombol "Mulai Game" ditekan, mencatat `started_at` di database Supabase dan mengaktifkan **Countdown Timer 60 menit**.
 
 2. **Arena Misi Utama (`/game`)**
    - Total ada **20 Misi** yang harus diselesaikan berurutan.
    - **Dual Input Button untuk Foto Misi:**
      - **[ 📷 Buka Kamera ]**: Mengambil foto real-time menggunakan kamera perangkat (`capture="environment"`).
      - **[ 📁 Upload Galeri ]**: Memilih file foto dari galeri perangkat.
-   - Tombol "Kirim Bukti Foto" akan mengunggah gambar ke MinIO dan mencatat progres ke database.
+   - **Kompresi Gambar Otomatis:** Foto yang diambil atau dipilih dari galeri akan otomatis dikompresi di sisi browser (resize max 1280px / target ~300–500 KB) sebelum dikirim.
+   - Tombol "Kirim Bukti Foto" akan mengunggah gambar ke **Supabase Storage** dan mencatat progres ke database Supabase.
 
 3. **Transisi Ayat Alkitab (Jeda 10 Detik)**
    - Setelah foto berhasil di-upload, sistem menampilkan layar/modal transisi berisi **Ayat Alkitab & Makna Rohani**.

@@ -1,0 +1,333 @@
+/* ==============================================================================
+ * CG Fun Coach - Sakura Pink & Pure White Design System
+ * Theme: "A Place for Everyone" - Amazing Race
+ * ============================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Sakura Primaries */
+  --sakura-primary: #E8638C;
+  --sakura-hover: #D44D76;
+  --sakura-accent: #F472B6;
+  --sakura-mist: #FDE2EB;
+  --sakura-whisper: #FFF0F5;
+
+  /* Pure & Pearl Whites */
+  --pure-white: #FFFFFF;
+  --pearl-bg: #FAF5F7;
+  --border-silk: #EEDCE3;
+  --border-medium: #D8C2CB;
+
+  /* Typography */
+  --text-main: #261C21;
+  --text-body: #4A3E45;
+  --text-muted: #7D6F76;
+
+  /* Status Accents */
+  --timer-amber: #F59E0B;
+  --timer-amber-bg: #FEF3C7;
+  --success-green: #10B981;
+  --success-green-bg: #D1FAE5;
+  --alert-ruby: #E11D48;
+  --alert-ruby-bg: #FFE4E6;
+
+  /* Gradients */
+  --gradient-sakura: linear-gradient(135deg, #FFB8D2 0%, #E8638C 50%, #D44D76 100%);
+  --gradient-sakura-soft: linear-gradient(135deg, #FFF0F5 0%, #FDE2EB 100%);
+  --gradient-card: linear-gradient(180deg, #FFFFFF 0%, #FCF9FA 100%);
+  --gradient-gold: linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%);
+
+  /* Shadows */
+  --shadow-sm: 0 2px 6px rgba(232, 99, 140, 0.06);
+  --shadow-md: 0 8px 24px -4px rgba(232, 99, 140, 0.12), 0 2px 8px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 16px 40px -6px rgba(232, 99, 140, 0.18), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --shadow-btn: 0 8px 20px -3px rgba(232, 99, 140, 0.38);
+
+  /* Fonts */
+  --font-heading: 'Outfit', sans-serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  max-width: 100vw;
+  min-height: 100vh;
+  background-color: var(--pearl-bg);
+  color: var(--text-body);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Background Atmospheric Glow */
+body {
+  background-image: 
+    radial-gradient(circle at 10% 15%, rgba(255, 184, 210, 0.28) 0%, transparent 40%),
+    radial-gradient(circle at 90% 85%, rgba(232, 99, 140, 0.16) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(253, 226, 235, 0.35) 0%, transparent 60%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+/* Typography styles */
+h1, h2, h3, h4, .font-heading {
+  font-family: var(--font-heading);
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+p {
+  line-height: 1.6;
+}
+
+/* Base Container for Mobile & Tablet Experience */
+.app-container {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding: 1.25rem 1rem 3rem 1rem;
+}
+
+/* Glassmorphism Card Component */
+.glass-card {
+  background: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border-silk);
+  border-radius: 20px;
+  box-shadow: var(--shadow-md);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glass-card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+/* Primary Button */
+.btn-sakura {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--gradient-sakura);
+  color: var(--pure-white);
+  border: none;
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 0.95rem 1.5rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  box-shadow: var(--shadow-btn);
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  text-decoration: none;
+  width: 100%;
+}
+
+.btn-sakura:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px -2px rgba(232, 99, 140, 0.48);
+  filter: brightness(1.03);
+}
+
+.btn-sakura:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 4px 12px rgba(232, 99, 140, 0.3);
+}
+
+.btn-sakura:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(40%);
+  box-shadow: none;
+}
+
+/* Secondary Button (Pure White Pill) */
+.btn-outline-sakura {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--pure-white);
+  color: var(--sakura-primary);
+  border: 1.5px solid var(--border-silk);
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.85rem 1.25rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.btn-outline-sakura:hover {
+  background: var(--sakura-whisper);
+  border-color: var(--sakura-primary);
+  transform: translateY(-1px);
+}
+
+/* Dual Input Camera & Gallery Buttons */
+.dual-input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.btn-dual-camera {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: linear-gradient(135deg, #FFF0F5 0%, #FFFFFF 100%);
+  border: 1.5px dashed var(--sakura-primary);
+  color: var(--sakura-primary);
+  padding: 1.1rem 0.75rem;
+  border-radius: 16px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: all 0.25s ease;
+  text-align: center;
+}
+
+.btn-dual-camera:hover {
+  background: var(--sakura-mist);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-dual-gallery {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: var(--pure-white);
+  border: 1.5px solid var(--border-silk);
+  color: var(--text-body);
+  padding: 1.1rem 0.75rem;
+  border-radius: 16px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: all 0.25s ease;
+  text-align: center;
+}
+
+.btn-dual-gallery:hover {
+  border-color: var(--sakura-accent);
+  color: var(--sakura-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Badges */
+.badge-sakura {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  background: var(--sakura-mist);
+  color: var(--sakura-primary);
+  font-family: var(--font-heading);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.badge-item-target {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 12px;
+  background: var(--sakura-whisper);
+  border: 1px solid var(--border-silk);
+  color: var(--sakura-hover);
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+/* Input Fields */
+.input-sakura {
+  width: 100%;
+  padding: 0.85rem 1.1rem;
+  border-radius: 14px;
+  border: 1.5px solid var(--border-silk);
+  background: var(--pure-white);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.input-sakura:focus {
+  border-color: var(--sakura-primary);
+  box-shadow: 0 0 0 3px rgba(232, 99, 140, 0.18);
+}
+
+.input-sakura::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* Animations */
+@keyframes pulseGlow {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(232, 99, 140, 0.4); }
+  50% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(232, 99, 140, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(232, 99, 140, 0); }
+}
+
+@keyframes pulseTimerWarning {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s infinite;
+}
+
+.animate-pulse-timer {
+  animation: pulseTimerWarning 1.2s infinite ease-in-out;
+}
+
+.modal-content-animate {
+  animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Floating Sakura Petal Decorative Icons */
+.sakura-petal {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.45;
+  filter: drop-shadow(0 2px 4px rgba(232, 99, 140, 0.15));
+}
