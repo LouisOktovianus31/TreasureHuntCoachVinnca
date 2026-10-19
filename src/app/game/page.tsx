@@ -1,58 +1,63 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Timer,
   Camera,
   Image as ImageIcon,
   CheckCircle2,
   Clock,
   Sparkles,
-  Award,
   AlertTriangle,
   ArrowRight,
   BookOpen,
   ChevronRight,
   Search,
-  Users,
-  RefreshCw
+  RefreshCw,
+  Timer
 } from "lucide-react";
 import confetti from "canvas-confetti";
-import { MISSIONS } from "@/data/missions";
-import { compressImage, formatBytes } from "@/lib/imageCompression";
+import { MISSIONS, Mission } from "@/data/missions";
+import { compressImage, formatBytes, CompressionResult } from "@/lib/imageCompression";
 import {
   uploadImageToStorage,
   submitMissionRecord,
-  completeTeamGame
+  completeTeamGame,
+  Team
 } from "@/lib/supabaseClient";
+
+interface CompressionStatsDisplay {
+  orig: string;
+  comp: string;
+  ratio: number;
+}
 
 export default function GameArenaPage() {
   const router = useRouter();
 
   // Team state
-  const [team, setTeam] = useState(null);
-  const [currentMissionIndex, setCurrentMissionIndex] = useState(0); // 0-based: 0..19
-  const [timeRemaining, setTimeRemaining] = useState(60 * 60); // 60 minutes in seconds
-  const [isTimeOut, setIsTimeOut] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(false);
-  const [completionDuration, setCompletionDuration] = useState(null);
-  const [submittedPhotos, setSubmittedPhotos] = useState({}); // missionNumber -> photoUrl
+  const [team, setTeam] = useState<Team | null>(null);
+  const [currentMissionIndex, setCurrentMissionIndex] = useState<number>(0); // 0-based: 0..19
+  const [timeRemaining, setTimeRemaining] = useState<number>(60 * 60); // 60 minutes in seconds
+  const [isTimeOut, setIsTimeOut] = useState<boolean>(false);
+  const [isCompleted, setIsCompleted] = useState<boolean>(false);
+  const [completionDuration, setCompletionDuration] = useState<string | null>(null);
+  const [, setSubmittedPhotos] = useState<Record<number, string>>({});
 
   // Upload state
-  const [photoFile, setPhotoFile] = useState(null);
-  const [photoPreview, setPhotoPreview] = useState(null);
-  const [compressionStats, setCompressionStats] = useState(null);
-  const [isCompressing, setIsCompressing] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [compressionStats, setCompressionStats] = useState<CompressionStatsDisplay | null>(null);
+  const [isCompressing, setIsCompressing] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   // Transition Modal (10 seconds delay)
-  const [showTransitionModal, setShowTransitionModal] = useState(false);
-  const [transitionCountdown, setTransitionCountdown] = useState(10);
-  const [completedMissionData, setCompletedMissionData] = useState(null);
+  const [showTransitionModal, setShowTransitionModal] = useState<boolean>(false);
+  const [transitionCountdown, setTransitionCountdown] = useState<number>(10);
+  const [completedMissionData, setCompletedMissionData] = useState<Mission | null>(null);
 
-  const cameraInputRef = useRef(null);
-  const galleryInputRef = useRef(null);
+  const cameraInputRef = useRef<HTMLInputElement | null>(null);
+  const galleryInputRef = useRef<HTMLInputElement | null>(null);
 
   // 1. Load team on mount
   useEffect(() => {
@@ -63,7 +68,7 @@ export default function GameArenaPage() {
         return;
       }
       try {
-        const parsed = JSON.parse(stored);
+        const parsed: Team = JSON.parse(stored);
         setTeam(parsed);
         // Load initial current mission
         if (parsed.currentMissionId && parsed.currentMissionId >= 1) {
@@ -119,20 +124,20 @@ export default function GameArenaPage() {
   }, [showTransitionModal]);
 
   // Format seconds to MM:SS
-  const formatTime = (secs) => {
+  const formatTime = (secs: number): string => {
     const m = Math.floor(secs / 60);
     const s = secs % 60;
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
   // Handle Photo selection & auto compression
-  const handlePhotoSelect = async (e) => {
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setIsCompressing(true);
     try {
-      const result = await compressImage(file, 1280, 0.78);
+      const result: CompressionResult = await compressImage(file, 1280, 0.78);
       setPhotoFile(result.file);
       setPhotoPreview(result.dataUrl);
       setCompressionStats({
@@ -151,7 +156,7 @@ export default function GameArenaPage() {
 
   // Submit Mission Photo
   const handleSubmitMission = async () => {
-    if (!photoFile || !team) return;
+    if (!photoFile || !team || !photoPreview) return;
 
     setIsSubmitting(true);
     const currentMission = MISSIONS[currentMissionIndex];
@@ -202,9 +207,11 @@ export default function GameArenaPage() {
       const nextIndex = currentMissionIndex + 1;
       setCurrentMissionIndex(nextIndex);
       // Update local storage
-      const updatedTeam = { ...team, currentMissionId: nextIndex + 1 };
-      setTeam(updatedTeam);
-      localStorage.setItem("cg_team_session", JSON.stringify(updatedTeam));
+      if (team) {
+        const updatedTeam: Team = { ...team, currentMissionId: nextIndex + 1 };
+        setTeam(updatedTeam);
+        localStorage.setItem("cg_team_session", JSON.stringify(updatedTeam));
+      }
       // Scroll to top
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
@@ -223,10 +230,12 @@ export default function GameArenaPage() {
         colors: ["#E8638C", "#F472B6", "#FFB8D2", "#F59E0B", "#10B981"]
       });
 
-      await completeTeamGame({
-        teamId: team.id,
-        durationSeconds: elapsedSeconds
-      });
+      if (team) {
+        await completeTeamGame({
+          teamId: team.id,
+          durationSeconds: elapsedSeconds
+        });
+      }
     }
   };
 

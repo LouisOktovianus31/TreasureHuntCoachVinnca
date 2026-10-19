@@ -1,7 +1,17 @@
-// CG Fun Coach - 20 Misi & Makna Rohani
+// CG Fun Coach - 20 Misi & Makna Rohani (TypeScript)
 // Tema: "A Place for Everyone" - Amazing Race
 
-export const MISSIONS = [
+export interface Mission {
+  id: number;
+  missionNumber: number;
+  title: string;
+  targetItem: string;
+  challenge: string;
+  spiritualMeaning: string;
+  bibleVerse: string;
+}
+
+export const MISSIONS: Mission[] = [
   {
     id: 1,
     missionNumber: 1,

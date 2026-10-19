@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Users,
@@ -15,27 +15,33 @@ import {
   Flame,
   Info
 } from "lucide-react";
-import { compressImage, formatBytes } from "@/lib/imageCompression";
+import { compressImage, formatBytes, CompressionResult } from "@/lib/imageCompression";
 import { createTeamInDb, uploadImageToStorage } from "@/lib/supabaseClient";
+
+interface CompressionStatsDisplay {
+  orig: string;
+  comp: string;
+  ratio: number;
+}
 
 export default function RegisterPage() {
   const router = useRouter();
 
-  const [teamName, setTeamName] = useState("");
-  const [memberInput, setMemberInput] = useState("");
-  const [members, setMembers] = useState([]);
-  const [teamPhotoFile, setTeamPhotoFile] = useState(null);
-  const [photoPreview, setPhotoPreview] = useState(null);
-  const [compressionStats, setCompressionStats] = useState(null);
-  const [isCompressing, setIsCompressing] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [teamName, setTeamName] = useState<string>("");
+  const [memberInput, setMemberInput] = useState<string>("");
+  const [members, setMembers] = useState<string[]>([]);
+  const [teamPhotoFile, setTeamPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [compressionStats, setCompressionStats] = useState<CompressionStatsDisplay | null>(null);
+  const [isCompressing, setIsCompressing] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string>("");
 
-  const cameraInputRef = useRef(null);
-  const galleryInputRef = useRef(null);
+  const cameraInputRef = useRef<HTMLInputElement | null>(null);
+  const galleryInputRef = useRef<HTMLInputElement | null>(null);
 
   // Add member to list
-  const handleAddMember = (e) => {
+  const handleAddMember = (e?: React.FormEvent) => {
     e?.preventDefault();
     const trimmed = memberInput.trim();
     if (!trimmed) return;
@@ -48,12 +54,12 @@ export default function RegisterPage() {
     setErrorMsg("");
   };
 
-  const handleRemoveMember = (nameToRemove) => {
+  const handleRemoveMember = (nameToRemove: string) => {
     setMembers((prev) => prev.filter((m) => m !== nameToRemove));
   };
 
   // Handle Photo selection & auto compression
-  const handlePhotoSelect = async (e) => {
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -61,7 +67,7 @@ export default function RegisterPage() {
     setIsCompressing(true);
 
     try {
-      const result = await compressImage(file, 1280, 0.78);
+      const result: CompressionResult = await compressImage(file, 1280, 0.78);
       setTeamPhotoFile(result.file);
       setPhotoPreview(result.dataUrl);
       setCompressionStats({
@@ -80,7 +86,7 @@ export default function RegisterPage() {
   };
 
   // Submit and start game
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
 
@@ -92,7 +98,7 @@ export default function RegisterPage() {
       setErrorMsg("Harap tambahkan minimal 1 nama anggota kelompok.");
       return;
     }
-    if (!teamPhotoFile) {
+    if (!teamPhotoFile || !photoPreview) {
       setErrorMsg("Harap ambil atau upload Foto Tim terlebih dahulu.");
       return;
     }

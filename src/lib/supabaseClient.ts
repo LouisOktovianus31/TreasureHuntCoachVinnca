@@ -1,4 +1,35 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+
+export interface Team {
+  id: string;
+  name: string;
+  members: string[];
+  teamPhotoUrl: string;
+  status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "TIMEOUT";
+  startedAt: string;
+  expiresAt: string;
+  completedAt?: string;
+  durationSeconds?: number;
+  currentMissionId: number;
+}
+
+export interface RegisterTeamParams {
+  name: string;
+  members: string[];
+  teamPhotoUrl: string;
+}
+
+export interface SubmitMissionParams {
+  teamId: string;
+  missionId: number;
+  photoUrl: string;
+  nextMissionId: number | null;
+}
+
+export interface CompleteGameParams {
+  teamId: string;
+  durationSeconds: number;
+}
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
@@ -11,17 +42,17 @@ const isConfigured = Boolean(
   supabaseUrl.startsWith("http")
 );
 
-export const supabase = isConfigured
+export const supabase: SupabaseClient | null = isConfigured
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
 
 /**
  * Uploads a compressed photo to Supabase Storage.
- * Falls back gracefully to local data URL if Supabase credentials are not yet configured.
+ * Falls back to local data URL if Supabase credentials are not yet configured or offline.
  */
-export async function uploadImageToStorage(file, path) {
+export async function uploadImageToStorage(file: File, path: string): Promise<string> {
   if (!supabase) {
-    console.info("Supabase credentials not yet configured. Using offline preview mode.");
+    console.info("Supabase client offline. Using local object URL.");
     return URL.createObjectURL(file);
   }
 
@@ -52,13 +83,12 @@ export async function uploadImageToStorage(file, path) {
 /**
  * Register a new team into Supabase 'teams' table
  */
-export async function createTeamInDb({ name, members, teamPhotoUrl }) {
+export async function createTeamInDb({ name, members, teamPhotoUrl }: RegisterTeamParams): Promise<Team> {
   const startedAt = new Date();
   const expiresAt = new Date(startedAt.getTime() + 60 * 60 * 1000); // +60 minutes
 
   if (!supabase) {
-    // Local / session fallback
-    const mockTeam = {
+    const mockTeam: Team = {
       id: "local-" + Date.now(),
       name,
       members,
@@ -91,7 +121,7 @@ export async function createTeamInDb({ name, members, teamPhotoUrl }) {
 
     if (error) throw error;
 
-    const teamData = {
+    const teamData: Team = {
       id: data.id,
       name: data.name,
       members: data.members,
@@ -106,9 +136,9 @@ export async function createTeamInDb({ name, members, teamPhotoUrl }) {
       sessionStorage.setItem("cg_current_team", JSON.stringify(teamData));
     }
     return teamData;
-  } catch (err) {
-    console.warn("Error inserting team to Supabase, fallback to session:", err.message);
-    const mockTeam = {
+  } catch (err: any) {
+    console.warn("Error inserting team to Supabase, fallback to session:", err?.message || err);
+    const mockTeam: Team = {
       id: "fallback-" + Date.now(),
       name,
       members,
@@ -128,7 +158,7 @@ export async function createTeamInDb({ name, members, teamPhotoUrl }) {
 /**
  * Record a mission photo submission
  */
-export async function submitMissionRecord({ teamId, missionId, photoUrl, nextMissionId }) {
+export async function submitMissionRecord({ teamId, missionId, photoUrl, nextMissionId }: SubmitMissionParams): Promise<{ success: boolean }> {
   if (!supabase || teamId.startsWith("local-") || teamId.startsWith("fallback-")) {
     return { success: true };
   }
@@ -163,7 +193,7 @@ export async function submitMissionRecord({ teamId, missionId, photoUrl, nextMis
 /**
  * Complete game for a team
  */
-export async function completeTeamGame({ teamId, durationSeconds }) {
+export async function completeTeamGame({ teamId, durationSeconds }: CompleteGameParams): Promise<{ success: boolean }> {
   const completedAt = new Date().toISOString();
   if (!supabase || teamId.startsWith("local-") || teamId.startsWith("fallback-")) {
     return { success: true };

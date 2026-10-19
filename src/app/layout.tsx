@@ -1,18 +1,20 @@
+import { ReactNode } from "react";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "CG Fun Coach | Amazing Race - A Place for Everyone",
   description: "Aplikasi web interaktif 20 Misi bertema 'A Place for Everyone' untuk Cell Group / Persekutuan Doa.",
 };
 
-export const viewport = {
+export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="id">
       <head>

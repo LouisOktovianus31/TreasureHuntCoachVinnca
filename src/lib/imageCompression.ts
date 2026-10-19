@@ -1,10 +1,23 @@
 /**
- * Client-Side Image Compression using HTML5 Canvas
+ * Client-Side Image Compression using HTML5 Canvas (TypeScript)
  * Resizes large camera photos to max 1280px dimension and converts to JPEG ~0.78 quality.
- * Keeps photos sharp and vivid while dropping file size from 4-8 MB to ~200-400 KB.
  */
 
-export async function compressImage(file, maxDimension = 1280, quality = 0.78) {
+export interface CompressionResult {
+  file: File;
+  dataUrl: string;
+  originalSizeBytes: number;
+  compressedSizeBytes: number;
+  width: number;
+  height: number;
+  ratio: number;
+}
+
+export async function compressImage(
+  file: File,
+  maxDimension: number = 1280,
+  quality: number = 0.78
+): Promise<CompressionResult> {
   return new Promise((resolve, reject) => {
     if (!file || !file.type.startsWith("image/")) {
       return reject(new Error("File yang dipilih bukan gambar yang valid."));
@@ -12,7 +25,7 @@ export async function compressImage(file, maxDimension = 1280, quality = 0.78) {
 
     const reader = new FileReader();
     reader.onerror = (err) => reject(err);
-    reader.onload = (event) => {
+    reader.onload = (event: ProgressEvent<FileReader>) => {
       const img = new Image();
       img.onerror = (err) => reject(err);
       img.onload = () => {
@@ -37,6 +50,10 @@ export async function compressImage(file, maxDimension = 1280, quality = 0.78) {
         canvas.height = height;
 
         const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          return reject(new Error("Gagal menginisialisasi canvas context."));
+        }
+
         // Smooth scaling
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = "high";
@@ -69,13 +86,13 @@ export async function compressImage(file, maxDimension = 1280, quality = 0.78) {
           quality
         );
       };
-      img.src = event.target.result;
+      img.src = event.target?.result as string;
     };
     reader.readAsDataURL(file);
   });
 }
 
-export function formatBytes(bytes, decimals = 1) {
+export function formatBytes(bytes: number, decimals: number = 1): string {
   if (bytes === 0) return "0 B";
   const k = 1024;
   const dm = decimals < 0 ? 0 : decimals;
