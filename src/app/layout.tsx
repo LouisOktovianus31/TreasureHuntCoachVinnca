@@ -3,8 +3,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CG Fun Coach | Amazing Race - A Place for Everyone",
-  description: "Aplikasi web interaktif 20 Misi bertema 'A Place for Everyone' untuk Cell Group / Persekutuan Doa.",
+  title: "CG Fun Coach Vinnca | Scavenger Hunt - More Than Friends, One Family",
+  description: "Aplikasi web interaktif 20 Misi bertema 'More Than Friends, One Family' untuk CG Fun Coach Vinnca.",
 };
 
 export const viewport: Viewport = {

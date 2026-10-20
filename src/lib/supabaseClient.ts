@@ -81,11 +81,17 @@ export async function uploadImageToStorage(file: File, path: string): Promise<st
 }
 
 /**
+ * Game Duration Configuration
+ * Official game duration: 60 minutes (3600 seconds)
+ */
+export const GAME_DURATION_SECONDS = 60 * 60;
+
+/**
  * Register a new team into Supabase 'teams' table
  */
 export async function createTeamInDb({ name, members, teamPhotoUrl }: RegisterTeamParams): Promise<Team> {
   const startedAt = new Date();
-  const expiresAt = new Date(startedAt.getTime() + 60 * 60 * 1000); // +60 minutes
+  const expiresAt = new Date(startedAt.getTime() + GAME_DURATION_SECONDS * 1000);
 
   if (!supabase) {
     const mockTeam: Team = {

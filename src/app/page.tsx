@@ -8,31 +8,29 @@ import {
   Image as ImageIcon,
   CheckCircle2,
   X,
-  Sparkles,
   Timer,
   BookOpen,
   ArrowRight,
   Flame,
-  Info
+  Info,
+  Play
 } from "lucide-react";
-import { compressImage, formatBytes, CompressionResult } from "@/lib/imageCompression";
+import { compressImage, CompressionResult } from "@/lib/imageCompression";
 import { createTeamInDb, uploadImageToStorage } from "@/lib/supabaseClient";
-
-interface CompressionStatsDisplay {
-  orig: string;
-  comp: string;
-  ratio: number;
-}
+import { soundManager } from "@/lib/soundManager";
 
 export default function RegisterPage() {
   const router = useRouter();
 
+  // Splash Screen State
+  const [hasStarted, setHasStarted] = useState<boolean>(false);
+
+  // Form State
   const [teamName, setTeamName] = useState<string>("");
   const [memberInput, setMemberInput] = useState<string>("");
   const [members, setMembers] = useState<string[]>([]);
   const [teamPhotoFile, setTeamPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [compressionStats, setCompressionStats] = useState<CompressionStatsDisplay | null>(null);
   const [isCompressing, setIsCompressing] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string>("");
@@ -58,7 +56,7 @@ export default function RegisterPage() {
     setMembers((prev) => prev.filter((m) => m !== nameToRemove));
   };
 
-  // Handle Photo selection & auto compression
+  // Handle Photo selection & silent auto compression
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -70,17 +68,11 @@ export default function RegisterPage() {
       const result: CompressionResult = await compressImage(file, 1280, 0.78);
       setTeamPhotoFile(result.file);
       setPhotoPreview(result.dataUrl);
-      setCompressionStats({
-        orig: formatBytes(result.originalSizeBytes),
-        comp: formatBytes(result.compressedSizeBytes),
-        ratio: result.ratio
-      });
     } catch (err) {
       console.error(err);
       setErrorMsg("Gagal memproses foto. Silakan coba kembali.");
     } finally {
       setIsCompressing(false);
-      // Reset input value so same file can be re-selected if needed
       e.target.value = "";
     }
   };
@@ -110,7 +102,7 @@ export default function RegisterPage() {
       const fileName = `team_${Date.now()}_${teamName.toLowerCase().replace(/[^a-z0-9]/g, "_")}.jpg`;
       const uploadedUrl = await uploadImageToStorage(teamPhotoFile, `teams/${fileName}`);
 
-      // 2. Create team record in DB & init 60-min timer
+      // 2. Create team record in DB & init timer
       const newTeam = await createTeamInDb({
         name: teamName.trim(),
         members,
@@ -123,7 +115,10 @@ export default function RegisterPage() {
         localStorage.setItem("cg_team_photo_local", photoPreview);
       }
 
-      // 4. Redirect to game arena
+      // 4. Start random gameplay background music
+      soundManager.playGameplay();
+
+      // 5. Redirect to game arena
       router.push("/game");
     } catch (err) {
       console.error("Gagal mendaftar:", err);
@@ -132,13 +127,115 @@ export default function RegisterPage() {
     }
   };
 
+  // ----------------------------------------------------------------------------
+  // 1. SPLASH SCREEN (Shown before clicking Play)
+  // ----------------------------------------------------------------------------
+  if (!hasStarted) {
+    return (
+      <main
+        className="app-container"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "88vh",
+          textAlign: "center"
+        }}
+      >
+        <div
+          className="glass-card"
+          style={{
+            width: "100%",
+            maxWidth: "460px",
+            padding: "3.2rem 1.8rem",
+            borderRadius: "28px",
+            boxShadow: "var(--shadow-lg)",
+            border: "1.5px solid var(--border-silk)"
+          }}
+        >
+          {/* Header Badge */}
+          <div
+            style={{
+              display: "inline-block",
+              padding: "0.45rem 1.1rem",
+              borderRadius: "9999px",
+              background: "var(--sakura-mist)",
+              color: "var(--sakura-hover)",
+              fontSize: "0.85rem",
+              fontWeight: 800,
+              letterSpacing: "0.06em",
+              marginBottom: "1.4rem",
+              textTransform: "uppercase"
+            }}
+          >
+            CG Fun Coach Vinnca
+          </div>
+
+          {/* Main Title */}
+          <h1
+            style={{
+              fontSize: "2.8rem",
+              fontWeight: 800,
+              lineHeight: 1.1,
+              color: "var(--text-main)",
+              marginBottom: "0.9rem",
+              fontFamily: "var(--font-heading)"
+            }}
+          >
+            Scavenger Hunt
+          </h1>
+
+          {/* Tagline */}
+          <p
+            style={{
+              fontSize: "1.2rem",
+              fontWeight: 600,
+              color: "var(--sakura-primary)",
+              marginBottom: "2.8rem",
+              fontStyle: "italic"
+            }}
+          >
+            &ldquo;More Than Friends, One Family&rdquo;
+          </p>
+
+          {/* Interactive Play Button */}
+          <button
+            type="button"
+            onClick={() => {
+              soundManager.unlockAudio();
+              setHasStarted(true);
+            }}
+            className="btn-sakura animate-pulse-glow"
+            style={{
+              width: "100%",
+              maxWidth: "260px",
+              margin: "0 auto",
+              fontSize: "1.15rem",
+              padding: "1rem 1.5rem",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.6rem"
+            }}
+          >
+            <Play size={22} fill="currentColor" />
+            <span>Play</span>
+          </button>
+        </div>
+
+        <footer style={{ marginTop: "2rem", color: "var(--text-muted)", fontSize: "0.82rem" }}>
+          <p>CG Fun Coach Vinnca &bull; 2026</p>
+        </footer>
+      </main>
+    );
+  }
+
+  // ----------------------------------------------------------------------------
+  // 2. REGISTRATION VIEW (Shown after clicking Play)
+  // ----------------------------------------------------------------------------
   return (
     <main className="app-container">
-      {/* Decorative Sakura Petal Badges */}
-      <div style={{ position: "absolute", top: "1.5rem", right: "1.5rem", opacity: 0.8 }}>
-        <span style={{ fontSize: "2rem" }}>🌸</span>
-      </div>
-
       {/* Header Banner */}
       <header style={{ textAlign: "center", marginBottom: "1.5rem", paddingTop: "0.5rem" }}>
         <div
@@ -155,8 +252,7 @@ export default function RegisterPage() {
             marginBottom: "0.6rem"
           }}
         >
-          <Sparkles size={14} />
-          <span>CELL GROUP AMAZING RACE</span>
+          <span>CG Fun 2026</span>
         </div>
 
         <h1
@@ -167,10 +263,10 @@ export default function RegisterPage() {
             marginBottom: "0.4rem"
           }}
         >
-          A Place for Everyone
+          More Than Friends, One Family
         </h1>
         <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>
-          Selesaikan 20 misi seru, temukan makna rohani, dan bangun kebersamaan keluarga Allah!
+          Selesaikan 20 misi seru dan bangun kebersamaan keluarga Allah!
         </p>
       </header>
 
@@ -267,7 +363,7 @@ export default function RegisterPage() {
             id="teamName"
             type="text"
             className="input-sakura"
-            placeholder="Contoh: Tim Barnabas / Kasih Kristus"
+            placeholder="Contoh: Laskar Kristus, CG Fun, GMS Happy"
             value={teamName}
             onChange={(e) => setTeamName(e.target.value)}
             disabled={isSubmitting}
@@ -375,7 +471,7 @@ export default function RegisterPage() {
             Foto Tim / Kelompok <span style={{ color: "var(--sakura-primary)" }}>*</span>
           </label>
           <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "0.6rem" }}>
-            Ambil foto seluruh anggota kelompok sebelum game dimulai.
+            Ambil foto selfie bersama-sama dan pastikan semua terlihat ya.
           </p>
 
           {/* Hidden Inputs */}
@@ -421,11 +517,11 @@ export default function RegisterPage() {
           {/* Compressing Indicator */}
           {isCompressing && (
             <div style={{ marginTop: "0.75rem", fontSize: "0.85rem", color: "var(--sakura-primary)", textAlign: "center" }}>
-              ⏳ Mengompresi foto otomatis di perangkat...
+              ⏳ Menyiapkan foto...
             </div>
           )}
 
-          {/* Photo Preview & Compression Badge */}
+          {/* Clean Photo Preview (No technical compression numbers) */}
           {photoPreview && (
             <div
               style={{
@@ -444,35 +540,27 @@ export default function RegisterPage() {
                 style={{ width: "100%", height: "200px", objectFit: "cover", display: "block" }}
               />
 
-              {/* Compression stat tag */}
-              {compressionStats && (
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: "0.5rem",
-                    left: "0.5rem",
-                    right: "0.5rem",
-                    background: "rgba(255, 255, 255, 0.92)",
-                    backdropFilter: "blur(6px)",
-                    padding: "0.35rem 0.65rem",
-                    borderRadius: "10px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    fontSize: "0.75rem",
-                    fontWeight: 600,
-                    color: "var(--text-main)"
-                  }}
-                >
-                  <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-                    <CheckCircle2 size={13} color="var(--success-green)" />
-                    Foto Siap
-                  </span>
-                  <span style={{ color: "var(--sakura-primary)" }}>
-                    {compressionStats.orig} → {compressionStats.comp} (-{compressionStats.ratio}%)
-                  </span>
-                </div>
-              )}
+              {/* Clean readiness badge */}
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "0.5rem",
+                  left: "0.5rem",
+                  background: "rgba(255, 255, 255, 0.94)",
+                  backdropFilter: "blur(6px)",
+                  padding: "0.35rem 0.75rem",
+                  borderRadius: "10px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.35rem",
+                  fontSize: "0.78rem",
+                  fontWeight: 600,
+                  color: "var(--success-green)"
+                }}
+              >
+                <CheckCircle2 size={14} />
+                <span>Foto Tim Siap</span>
+              </div>
             </div>
           )}
         </div>
@@ -496,7 +584,7 @@ export default function RegisterPage() {
 
       {/* Footer Info */}
       <footer style={{ textAlign: "center", marginTop: "2rem", color: "var(--text-muted)", fontSize: "0.8rem" }}>
-        <p>Cell Group Amazing Race &bull; Tema: &ldquo;A Place for Everyone&rdquo;</p>
+        <p>CG Fun Coach Vinnca &bull; Scavenger Hunt</p>
       </footer>
     </main>
   );
